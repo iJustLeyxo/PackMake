@@ -16,42 +16,39 @@ import java.util.List;
 public final class PackMake {
     private static final @NotNull File SRC = new File("./src/");
     private static final @NotNull File TAR = new File("./target/");
+    private static final @NotNull File CONF = new File("./pm.yml");
 
-    public static void main(String[] args) {
-        Yaml yaml = new Yaml();
-        List<Integer> formats = null;
-        try {
-            formats = yaml.load(new FileInputStream("./pm.yml"));
-        } catch (IOException e) {
-            System.out.println("Config load from pm.yml failed");
-            System.exit(1);
-        }
+    public static void main(String[] args) throws Config.ConfigLoadException {
+        Config config = Config.load(CONF);
         SRC.mkdirs();
         TAR.mkdirs();
         File[] files = SRC.listFiles();
         if (files == null) return;
         for (File file : files) make(
+                config, config.formats(),
                 null, null,
-                    SRC, formats.stream().map(b -> new Duo<>(b, new File(TAR, b + "/"))).toList(),
-                    new File(""), new File(""), new File(file.getName()));
+                TAR, SRC,
+                new File(""), new File(""),
+                new File(file.getName()));
     }
 
     private static void make(
+            @NotNull Config config, @NotNull List<Integer> formats,
             @Nullable Byte lower, @Nullable Byte upper,
-            @NotNull File srcBase, @NotNull List<Duo<Integer, File>> packBase,
-            @NotNull File srcFolder, @NotNull File packFolder,
+            @NotNull File packBase, @NotNull File packFolder,
+            @NotNull File srcBase, @NotNull File srcFolder,
             @NotNull File srcFile) {
-        @NotNull String name = srcFile.getName();
-        int start = name.indexOf('#'); // Start of config
+        @NotNull String simpleName = srcFile.getName();
+        int start = simpleName.indexOf('#'); // Start of config
         if (0 <= start) {
             int i = start + 1; // Skip '#'
-            Duo<Byte, Integer> first = parseByte(name, i); // Parse first bound
+            Duo<Byte, Integer> first = parseByte(simpleName, i); // Parse first bound
             if (first != null) {
                 i = first.b();
                 byte bound = first.a();
 
-                char sep = name.charAt(i);
-                Duo<Byte, Integer> second = null;
+                char sep = simpleName.charAt(i);
+                Duo<Byte, Integer> second;
 
                 boolean asLower = true;
                 boolean asUpper = false;
@@ -59,7 +56,7 @@ public final class PackMake {
                 if (sep == '+') i++;
                 else if (sep == '-') {
                     i++;
-                    second = parseByte(name, i); // Parse second bound
+                    second = parseByte(simpleName, i); // Parse second bound
 
                     if (second == null) {
                         asLower = false;
@@ -67,7 +64,7 @@ public final class PackMake {
                     } else {
                         byte alternate = second.a();
                         if (upper == null || alternate < upper) upper = alternate;
-                        else System.out.println("Config warning: Upper bound " + alternate + " is redundant for " + srcFile);
+                        else System.out.println("Warning: Upper bound " + alternate + " is redundant for " + srcFile);
                         i = second.b();
                     }
                 } else {
@@ -76,55 +73,68 @@ public final class PackMake {
 
                 if (asLower) {
                     if (lower == null || lower < bound) lower = bound;
-                    else System.out.println("Config warning: Lower bound " + bound + " is redundant for " + srcFile);
+                    else System.out.println("Warning: Lower bound " + bound + " is redundant for " + srcFile);
                 }
 
                 if (asUpper) {
                     if (upper == null || bound < upper) upper = bound;
-                    else System.out.println("Config warning: Upper bound " + bound + " is redundant for " + srcFile);
+                    else System.out.println("Warning: Upper bound " + bound + " is redundant for " + srcFile);
                 }
             } else {
-                System.out.println("Config warning: Expecting <byte> after \"#\" for " + srcFile);
+                System.out.println("Warning: Expecting <byte> after \"#\" for " + srcFile);
             }
 
-            name = name.substring(0, start) + name.substring(i); // Remove config from name
+            simpleName = simpleName.substring(0, start) + simpleName.substring(i); // Remove config from name
         }
-
-        if (name.isEmpty()) {
-            System.out.println("Config warning: Empty file name for " + srcFile);
+        
+        if (simpleName.isEmpty()) {
+            System.out.println("Warning: Empty file name for " + srcFile);
             return;
         }
 
         @Nullable Byte fLower = lower; // Filter which pack formats are still in range
         @Nullable Byte fUpper = upper;
-        List<Duo<Integer, File>> selected = packBase.stream()
-                .filter(d -> (fLower == null || fLower <= d.a()) && (fUpper == null || d.a() <= fUpper)).toList();
+        List<Integer> selected = config.formats().stream()
+                .filter(f -> (fLower == null || fLower <= f) && (fUpper == null || f <= fUpper)).toList();
         if (selected.isEmpty()) { // Nothing to do
-            System.out.println("Config warning: No formats in range for " + srcFile);
+            System.out.println("Warning: No formats in range for " + srcFile);
             return;
         }
 
         File src = new File(srcBase + "/" + srcFolder + "/" + srcFile);
 
         if (src.isDirectory()) { // Descend into directory
-
             File[] files = src.listFiles();
-            if (files == null || files.length == 0) return;
+
+            if (files == null || files.length == 0) {
+                System.out.println("Warning: Folder " + srcFile + " is empty");
+                return;
+            }
+
+            packFolder = new File(packFolder + "/" + simpleName);
+            srcFolder = new File(srcFolder + "/" + srcFile);
+
             for (File f : files) make(
+                    config, selected,
                     lower, upper,
-                    srcBase, packBase,
-                    new File(srcFolder + "/" + srcFile),
-                    new File(packFolder + "/" + name), new File(f.getName()));
+                    packBase, packFolder,
+                    srcBase, srcFolder,
+                    new File(f.getName()));
         } else { // Copy file to packs
-            for (Duo<Integer, File> pack : selected) {
-                File destFolder = new File(pack.b() + "/" + packFolder);
-                File dest = new File(destFolder + "/" + name);
-                if (dest.exists()) System.out.println(src + " is over defining " + dest);
+            @NotNull String finalSimpleName = simpleName;
+            if (config.extensions().stream().filter(finalSimpleName::endsWith).toList().isEmpty()) {
+                System.out.println("Warning: File " + srcFile + " does not end with a valid extension");
+            }
+
+            for (Integer format : selected) {
+                File destFolder = new File(packBase + "/" + format + "/" + packFolder);
+                File dest = new File(destFolder + "/" + simpleName);
+                if (dest.exists()) System.out.println("Warning: " + src + " is overdefining " + dest);
                 else try {
                     destFolder.mkdirs();
                     Files.copy(src.toPath(), dest.toPath());
                 } catch (IOException e) {
-                    System.out.println("Failed to copy " + src + " to " + dest);
+                    System.out.println("Error: Failed to copy " + src + " to " + dest);
                 }
             }
         }
