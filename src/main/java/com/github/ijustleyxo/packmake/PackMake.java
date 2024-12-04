@@ -27,8 +27,8 @@ public final class PackMake {
         for (File file : files) make(
                 config, config.formats(),
                 null, null,
-                TAR, SRC,
-                new File(""), new File(""),
+                TAR, new File(""),
+                SRC, new File(""),
                 new File(file.getName()));
     }
 
