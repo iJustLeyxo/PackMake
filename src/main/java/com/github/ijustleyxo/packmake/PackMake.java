@@ -27,8 +27,8 @@ public final class PackMake {
         for (File file : files) make(
                 config, config.formats(),
                 null, null,
-                TAR, SRC,
-                new File(""), new File(""),
+                TAR, new File(""),
+                SRC, new File(""),
                 new File(file.getName()));
     }
 
@@ -47,7 +47,7 @@ public final class PackMake {
                 i = first.b();
                 byte bound = first.a();
 
-                char sep = simpleName.charAt(i);
+                char sep = i < simpleName.length() ? simpleName.charAt(i) : '\0';
                 Duo<Byte, Integer> second;
 
                 boolean asLower = true;
