@@ -47,19 +47,46 @@ public final class PackMake {
             int i = start + 1; // Skip '#'
             Duo<Byte, Integer> first = parseByte(name, i); // Parse first bound
             if (first != null) {
-                lower = first.a();
                 i = first.b();
-            }
-            if (name.startsWith("...", i)) { // Parse separator
-                i += 3;
+                byte bound = first.a();
 
-                Duo<Byte, Integer> second = parseByte(name, i); // Parse second bound
-                if (second != null) {
-                    upper = second.a();
-                    i = second.b();
-                } else if (first == null)
-                    System.out.println("Config warning: \"...\" is redundant in " + srcFile); // No bounds case
-            } else if (first != null) upper = first.a(); // Single format bound
+                char sep = name.charAt(i);
+                Duo<Byte, Integer> second = null;
+
+                boolean asLower = true;
+                boolean asUpper = false;
+
+                if (sep == '+') i++;
+                else if (sep == '-') {
+                    i++;
+                    second = parseByte(name, i); // Parse second bound
+
+                    if (second == null) {
+                        asLower = false;
+                        asUpper = true;
+                    } else {
+                        byte alternate = second.a();
+                        if (upper == null || alternate < upper) upper = alternate;
+                        else System.out.println("Config warning: Upper bound " + alternate + " is redundant for " + srcFile);
+                        i = second.b();
+                    }
+                } else {
+                    asUpper = true;
+                }
+
+                if (asLower) {
+                    if (lower == null || lower < bound) lower = bound;
+                    else System.out.println("Config warning: Lower bound " + bound + " is redundant for " + srcFile);
+                }
+
+                if (asUpper) {
+                    if (upper == null || bound < upper) upper = bound;
+                    else System.out.println("Config warning: Upper bound " + bound + " is redundant for " + srcFile);
+                }
+            } else {
+                System.out.println("Config warning: Expecting <byte> after \"#\" for " + srcFile);
+            }
+
             name = name.substring(0, start) + name.substring(i); // Remove config from name
         }
 
