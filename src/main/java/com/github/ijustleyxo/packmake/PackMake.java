@@ -90,11 +90,19 @@ public final class PackMake {
             name = name.substring(0, start) + name.substring(i); // Remove config from name
         }
 
+        if (name.isEmpty()) {
+            System.out.println("Config warning: Empty file name for " + srcFile);
+            return;
+        }
+
         @Nullable Byte fLower = lower; // Filter which pack formats are still in range
         @Nullable Byte fUpper = upper;
         List<Duo<Integer, File>> selected = packBase.stream()
                 .filter(d -> (fLower == null || fLower <= d.a()) && (fUpper == null || d.a() <= fUpper)).toList();
-        if (selected.isEmpty()) return; // Nothing to do
+        if (selected.isEmpty()) { // Nothing to do
+            System.out.println("Config warning: No formats in range for " + srcFile);
+            return;
+        }
 
         File src = new File(srcBase + "/" + srcFolder + "/" + srcFile);
 
