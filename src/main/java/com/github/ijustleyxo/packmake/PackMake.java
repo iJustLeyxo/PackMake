@@ -47,7 +47,7 @@ public final class PackMake {
                 i = first.b();
                 byte bound = first.a();
 
-                char sep = simpleName.charAt(i);
+                char sep = i < simpleName.length() ? simpleName.charAt(i) : '\0';
                 Duo<Byte, Integer> second;
 
                 boolean asLower = true;
