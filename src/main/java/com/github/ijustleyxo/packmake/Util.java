@@ -24,7 +24,6 @@ public final class Util {
             new PngOptimizer()
                     .optimize(new PngImage(Files.newInputStream(file.toPath())))
                     .writeDataOutputStream(Files.newOutputStream(file.toPath()));
-            System.out.println("Compressed " + file);
         } catch (IOException e) {
             System.out.println("Failed to compress " + file);
         }
