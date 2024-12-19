@@ -18,8 +18,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.github.ijustleyxo.packmake.Util.delete;
-import static com.github.ijustleyxo.packmake.Util.zip;
+import static com.github.ijustleyxo.packmake.Util.*;
 
 /**
  * Minecraft resource pack compiler
@@ -169,22 +168,5 @@ public final class PackMake {
         }
         if (result == null) return null;
         else return new Duo<>(result, k - 1);
-    }
-
-    /**
-     * Compress a png file with configured settings. Ignores files that do not ent with ".png".
-     * @param file The file to compress
-     */
-    private static void compress(@NotNull File file) {
-        if (!file.getName().toLowerCase().endsWith(".png")) return;
-
-        try {
-            new PngOptimizer()
-                    .optimize(new PngImage(Files.newInputStream(file.toPath())))
-                    .writeDataOutputStream(Files.newOutputStream(file.toPath()));
-            System.out.println("Compressed " + file);
-        } catch (IOException e) {
-            System.out.println("Failed to compress " + file);
-        }
     }
 }

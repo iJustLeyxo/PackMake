@@ -1,5 +1,7 @@
 package com.github.ijustleyxo.packmake;
 
+import com.googlecode.pngtastic.core.PngImage;
+import com.googlecode.pngtastic.core.PngOptimizer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -11,6 +13,23 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public final class Util {
+    /**
+     * Compress a png file with configured settings. Ignores files that do not ent with ".png".
+     * @param file The file to compress
+     */
+    public static void compress(@NotNull File file) {
+        if (!file.getName().toLowerCase().endsWith(".png")) return;
+
+        try {
+            new PngOptimizer()
+                    .optimize(new PngImage(Files.newInputStream(file.toPath())))
+                    .writeDataOutputStream(Files.newOutputStream(file.toPath()));
+            System.out.println("Compressed " + file);
+        } catch (IOException e) {
+            System.out.println("Failed to compress " + file);
+        }
+    }
+
     public static void zip(@NotNull File[] files, @NotNull File target) {
         try {
             ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(target.toPath()));
