@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class Util {
+public final class Util {
     public static void zip(@NotNull File[] files, @NotNull File target) {
         try {
             ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(target.toPath()));
@@ -40,5 +40,18 @@ public class Util {
             zip.write(bytes, 0, length);
         }
         input.close();
+    }
+
+    /**
+     * Recursively deletes files
+     * @param file The file / folder to delete
+     */
+    public static void delete(@NotNull File file) {
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            if (files != null) for (File f : files) delete(f);
+        }
+
+        file.delete();
     }
 }

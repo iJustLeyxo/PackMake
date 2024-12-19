@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.github.ijustleyxo.packmake.Util.delete;
 import static com.github.ijustleyxo.packmake.Util.zip;
 
 /**
@@ -31,7 +32,7 @@ public final class PackMake {
     public static void main(String[] args) throws Config.ConfigLoadException {
         Config config = Config.load(CONF);
         SRC.mkdirs();
-        TAR.mkdirs();
+        delete(TAR);
         File[] files = SRC.listFiles();
         if (files == null) return;
         for (File file : files) make(
@@ -43,6 +44,7 @@ public final class PackMake {
         for (Integer format : config.formats()) {
             File folder = new File(TAR, format + "/");
             zip(folder.listFiles(), new File(TAR, config.name() + "-" + "VER" + "-" + format + ".zip"));
+            delete(folder);
         }
     }
 
