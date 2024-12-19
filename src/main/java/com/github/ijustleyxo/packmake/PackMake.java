@@ -11,12 +11,14 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static com.github.ijustleyxo.packmake.Util.zip;
 
 /**
  * Minecraft resource pack compiler
@@ -38,6 +40,10 @@ public final class PackMake {
                 TAR, new File(""),
                 SRC, new File(""),
                 new File(file.getName()));
+        for (Integer format : config.formats()) {
+            File folder = new File(TAR, format + "/");
+            zip(folder.listFiles(), new File(TAR, config.name() + "-" + "VER" + "-" + format + ".zip"));
+        }
     }
 
     private static void make(
