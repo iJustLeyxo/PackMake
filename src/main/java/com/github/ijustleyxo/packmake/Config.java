@@ -1,6 +1,7 @@
 package com.github.ijustleyxo.packmake;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -12,6 +13,7 @@ import java.util.List;
 
 public record Config (
     @NotNull String name,
+    @Nullable String ver,
     @NotNull List<Integer> formats, // Formats to compile
     @NotNull List<String> extensions // Allowed file extensions
 ) {
@@ -27,14 +29,15 @@ public record Config (
 
         try {
             HashMap<String, Object> fields = (HashMap<String, Object>) yml;
-            if (fields == null) return new Config("NoName", new LinkedList<>(), new LinkedList<>());
+            if (fields == null) return new Config("NoName", null, new LinkedList<>(), new LinkedList<>());
             String name = (String) fields.get("name");
             if (name == null) name = "NoName";
+            String ver = (String) fields.get("ver");
             List<Integer> formats = (List<Integer>) fields.get("formats");
             if (formats == null) formats = new LinkedList<>();
             List<String> extensions = (List<String>) fields.get("extensions");
             if (extensions == null) extensions = new LinkedList<>();
-            return new Config(name, formats, extensions);
+            return new Config(name, ver, formats, extensions);
         } catch (ClassCastException e) {
             throw new ConfigLoadException(file, "Invalid config format", e);
         }
