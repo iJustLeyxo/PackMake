@@ -58,15 +58,19 @@ public final class Util {
             return;
         }
 
-        zip.putNextEntry(new ZipEntry(path + file.getName())); // Add file meta
-
-        FileInputStream input = new FileInputStream(file); // Copy file
-        byte[] bytes = new byte[1024];
-        int length;
-        while (true) {
-            length = input.read(bytes);
-            if (length <= 0) break;
-            zip.write(bytes, 0, length);
+        try {
+            zip.putNextEntry(new ZipEntry(path + file.getName())); // Add file meta
+            FileInputStream input = new FileInputStream(file); // Copy file
+            byte[] bytes = new byte[1024];
+            int length;
+            while (true) {
+                length = input.read(bytes);
+                if (length <= 0) break;
+                zip.write(bytes, 0, length);
+            }
+            input.close();
+        } catch (IOException e) {
+            System.out.println("Failed to add " + file + " to zip");
         }
     }
 
