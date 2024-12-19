@@ -29,6 +29,11 @@ public final class Util {
         }
     }
 
+    /**
+     * Recursive adds files to a zip archive
+     * @param files The files to zip
+     * @param target The target zip file
+     */
     public static void zip(@NotNull File[] files, @NotNull File target) {
         try {
             ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(target.toPath()));
@@ -39,7 +44,13 @@ public final class Util {
         }
     }
 
-    private static void addEntry(@NotNull ZipOutputStream zip, @NotNull File file, @NotNull String path) throws IOException {
+    /**
+     * Recursively adds entries to zip files
+     * @param zip The zip output stream to add to
+     * @param file The file to zip
+     * @param path The relative path inside the zip archive
+     */
+    private static void addEntry(@NotNull ZipOutputStream zip, @NotNull File file, @NotNull String path) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             if (files == null) return;
@@ -57,7 +68,6 @@ public final class Util {
             if (length <= 0) break;
             zip.write(bytes, 0, length);
         }
-        input.close();
     }
 
     /**
