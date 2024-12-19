@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public record Config (
+    @NotNull String name,
     @NotNull List<Integer> formats, // Formats to compile
     @NotNull List<String> extensions // Allowed file extensions
 ) {
@@ -26,12 +27,14 @@ public record Config (
 
         try {
             HashMap<String, Object> fields = (HashMap<String, Object>) yml;
-            if (fields == null) return new Config(new LinkedList<>(), new LinkedList<>());
+            if (fields == null) return new Config("NoName", new LinkedList<>(), new LinkedList<>());
+            String name = (String) fields.get("name");
+            if (name == null) name = "NoName";
             List<Integer> formats = (List<Integer>) fields.get("formats");
             if (formats == null) formats = new LinkedList<>();
             List<String> extensions = (List<String>) fields.get("extensions");
             if (extensions == null) extensions = new LinkedList<>();
-            return new Config(formats, extensions);
+            return new Config(name, formats, extensions);
         } catch (ClassCastException e) {
             throw new ConfigLoadException(file, "Invalid config format", e);
         }
