@@ -3,10 +3,9 @@ package com.github.ijustleyxo.packmake;
 import com.googlecode.pngtastic.core.PngImage;
 import com.googlecode.pngtastic.core.PngOptimizer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.zip.ZipEntry;
@@ -26,6 +25,20 @@ public final class Util {
                     .writeDataOutputStream(Files.newOutputStream(file.toPath()));
         } catch (IOException e) {
             System.out.println("Failed to compress " + file);
+        }
+    }
+
+    /**
+     * Gets the latest git tag in the current repository
+     * @return The latest git tag as a string or {@code null} if git is not installed or current branch is not tagged
+     */
+    public static @Nullable String gitTag() {
+        try {
+            Process process = Runtime.getRuntime().exec("git describe --tags");
+            String tag = new BufferedReader(new InputStreamReader(process.getInputStream())).readLine().strip();
+            return tag.equals("fatal: No names found, cannot describe anything.") ? null : tag;
+        } catch (IOException e) {
+            return null;
         }
     }
 

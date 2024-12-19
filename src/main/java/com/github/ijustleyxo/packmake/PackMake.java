@@ -30,9 +30,18 @@ public final class PackMake {
                 TAR, new File(""),
                 SRC, new File(""),
                 new File(file.getName()));
+
+        String ver = "NoVer";
+        if (args.length > 0) ver = args[0];
+        else if (config.ver() != null) config.ver();
+        else {
+            String git = gitTag();
+            if (git != null) ver = git;
+        }
+
         for (Integer format : config.formats()) {
             File folder = new File(TAR, format + "/");
-            zip(folder.listFiles(), new File(TAR, config.name() + "-" + "VER" + "-" + format + ".zip"));
+            zip(folder.listFiles(), new File(TAR, config.name() + "-" + ver + "-" + format + ".zip"));
             delete(folder);
         }
     }
