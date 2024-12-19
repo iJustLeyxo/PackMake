@@ -1,12 +1,20 @@
 package com.github.ijustleyxo.packmake;
 
+import com.googlecode.pngtastic.core.PngImage;
+import com.googlecode.pngtastic.core.PngOptimizer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -121,6 +129,8 @@ public final class PackMake {
                     srcBase, srcFolder,
                     new File(f.getName()));
         } else { // Copy file to packs
+            compress(src); // Automatically ignores files that don't end in ".png".
+
             @NotNull String finalSimpleName = simpleName;
             if (config.extensions().stream().filter(finalSimpleName::endsWith).toList().isEmpty()) {
                 System.out.println("Warning: File " + srcFile + " does not end with a valid extension");
@@ -151,5 +161,22 @@ public final class PackMake {
         }
         if (result == null) return null;
         else return new Duo<>(result, k - 1);
+    }
+
+    /**
+     * Compress a png file with configured settings. Ignores files that do not ent with ".png".
+     * @param file The file to compress
+     */
+    private static void compress(@NotNull File file) {
+        if (!file.getName().toLowerCase().endsWith(".png")) return;
+
+        try {
+            new PngOptimizer()
+                    .optimize(new PngImage(Files.newInputStream(file.toPath())))
+                    .writeDataOutputStream(Files.newOutputStream(file.toPath()));
+            System.out.println("Compressed " + file);
+        } catch (IOException e) {
+            System.out.println("Failed to compress " + file);
+        }
     }
 }

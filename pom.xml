@@ -74,5 +74,11 @@
       <version>24.1.0</version>
       <scope>compile</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.github.depsypher</groupId>
+      <artifactId>pngtastic</artifactId>
+      <version>1.8</version>
+    </dependency>
   </dependencies>
 </project>
